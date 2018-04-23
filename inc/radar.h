@@ -22,6 +22,16 @@
 #define Buf_Max 500			/* maximum size of the record buffer */
 #define Cluster_stat 0x600
 #define RadarState 0x201
+/* Definitions for Cluster genral information*/
+#define Cluster_Gen 0x701
+#define scal_dist 0.2
+#define scal_vrel 0.25
+#define offst_dtlong -500
+#define offst_dtlat -102.3
+#define offst_vrellong -128
+#define offst_vrellat -64
+#define offst_rcs -64
+	
 
 
 
@@ -53,14 +63,20 @@ struct Radar_State{
 	int RCS_Threshold;
 };
 
-
-	
-
-
+struct Cluster_GenInf{
+	int clust_id;
+	int clust_distlong;
+	int clust_distlat;
+	int clust_vrelLong;
+	int clust_vrelLat;
+	int clust_dycprop;
+	int clust_RCS;
+};
 
 
 
 extern int open_socket(int *socket_id);
 extern void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr);
+extern void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr);
 extern void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr);
 extern void displayRadarState(struct Radar_State Radar_State);
