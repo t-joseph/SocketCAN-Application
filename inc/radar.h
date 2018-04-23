@@ -20,6 +20,10 @@
 
 
 #define Buf_Max 500			/* maximum size of the record buffer */
+#define Cluster_stat 0x600
+#define RadarState 0x201
+
+
 
 struct Cluster{
 	int near_target;
@@ -29,14 +33,34 @@ struct Cluster{
 };
 
 
+struct Radar_State{
+	int NVMReadStatus;
+	int NVMwriteStatus;
+	int MaxDistanceCfg;
+	int Persistent_Error;
+	int Interference;
+	int Temperature_Error;
+	int Temporary_Error;
+	int Voltage_Error;
+	int SensorID;
+	int SortIndex;
+	int RadarPowerCfg;
+	int CtrlRelayCfg;
+	int OutputTypeCfg;
+	int SendQualityCfg;
+	int SendExtInfoCfg;
+	int MotionRxState;
+	int RCS_Threshold;
+};
+
+
 	
 
-#define Cluster_stat 0x600
-#define d1 0.0
-#define d2 0.0
-#define c1 0.0
-#define c2 0.0
+
+
 
 
 extern int open_socket(int *socket_id);
 extern void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr);
+extern void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr);
+extern void displayRadarState(struct Radar_State Radar_State);

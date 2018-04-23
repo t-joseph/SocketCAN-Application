@@ -12,6 +12,7 @@ int main(){
 
 	int socket_id, error;
 	struct Cluster Cluster_Status;
+	struct Radar_State Radar_State;
 
 	error = open_socket(&socket_id);
 
@@ -24,12 +25,12 @@ int main(){
 
 		do {
 			Read_Cluster(socket_id, &Cluster_Status);
-		printf("Number of near Target = %d, Number of far Targets %d\n", Cluster_Status.near_target, Cluster_Status.far_target);
- 
-		printf("Number Measurement Cycles = %d\n", Cluster_Status.cycle_counter);
-		 
-
-
+			printf("Number of near Target = %d, Number of far Targets %d\n", Cluster_Status.near_target, Cluster_Status.far_target);	 
+			printf("Number Measurement Cycles = %d\n", Cluster_Status.cycle_counter);
+			
+			Read_Radar_State(socket_id, &Radar_State);
+			displayRadarState(Radar_State);	
+			
 		} while(1);
 	}
 
