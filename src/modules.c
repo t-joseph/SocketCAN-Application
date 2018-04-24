@@ -43,8 +43,8 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
 		Cluster_ptr->near_target = (int)frame_read.data[0];
 		Cluster_ptr->far_target = (int)frame_read.data[1];
 		Cluster_ptr->cycle_counter = (int)(frame_read.data[2] * 256 + frame_read.data[3]);
-		Cluster_ptr->interface = (int)(frame_read.data[4]);
-		Cluster_ptr->interface =Cluster_ptr->interface & 0xf0;
+		Cluster_ptr->interface = ((int)frame_read.data[4] >> 4) & 0x0f;
+		//Cluster_ptr->interface = (Cluster_ptr->interface  >> 4) & 0x0f;
 	}
 		  
 }
@@ -58,8 +58,8 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
 
   if (frame_read.can_id == Cluster_Gen){
     Cluster_ptr->clust_id = (int)frame_read.data[0];
-    Cluster_ptr->clust_distlong = (int)(frame_read.data[1] * 256 +(frame_read.data[2] >> 3));
-    Cluster_ptr->clust_distlat = (int) ((frame_read.data[2] & 0x03) * 256 +  frame_read.data[3]);
+    Cluster_ptr->clust_distlong = (scal_dist *((int)(frame_read.data[1] * 256) + ((int)frame_read.data[2] >>3) & 0x1f))+offst_dtlong;
+    Cluster_ptr->clust_distlat = (scal_dist*((((int)frame_read.data[2] << 8) & 0x300) + ((int)frame_read.data[3])))+offst_dtlat;
     Cluster_ptr->clust_vrelLong = (int)((frame_read.data[4])*256 + (frame_read.data[5] & 0xC0));
     Cluster_ptr->clust_vrelLat = (int)((frame_read.data[5] & 0x3F) + (frame_read.data[6]) & 0xE0);
     Cluster_ptr->clust_dycprop = (int)((frame_read.data[6]) & 0x07);
@@ -74,6 +74,30 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
   }
 
 }
+
+
+void Read_ClusterQual(int socket_id, struct Cluster_QuaInf *Cluster_ptr){
+/* Read in Cluster Quality Information from the CAN ID 702*/
+	struct can_frame frame_read;
+	int nbytes;
+	memset(Cluster_ptr, 0, sizeof(struct Cluster_QuaInf));
+	
+	nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
+
+	if(frame_read.can_id == Cluster_QuaInfId){
+	 	Cluster_ptr -> clust_id = (int)frame_read.data[0];
+		Cluster_ptr -> clust_distlong_rms = ((int)frame_read.data[1] >> 3) & 0x1f;
+		Cluster_ptr -> clust_distlat_rms = (((int)frame_read.data[1] << 2) & 0x1c) + (((int)frame_read.data[2] >> 6) & 0x03);
+		Cluster_ptr -> clust_vrelLong_rms = (((int)frame_read.data[2] >> 1) & 0x1f);
+		Cluster_ptr -> clust_vrelLat_rms = (((int)frame_read.data[2] << 4) & 0x10) + (((int)frame_read.data[3] >> 4) & 0x0f);
+		Cluster_ptr -> clust_Pdh0 = (int)frame_read.data[3] & 0x07;
+		Cluster_ptr -> clust_AmbigState = ((int)frame_read.data[4] & 0x07);
+		Cluster_ptr -> clust_InvalidState = ((int)frame_read.data[4] >> 3) & 0x1f;
+
+	}
+}
+
+
 
 
 

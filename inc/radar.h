@@ -22,6 +22,7 @@
 #define Buf_Max 500			/* maximum size of the record buffer */
 #define Cluster_stat 0x600
 #define RadarState 0x201
+#define Cluster_QuaInfId 0x702
 /* Definitions for Cluster genral information*/
 #define Cluster_Gen 0x701
 #define scal_dist 0.2
@@ -73,6 +74,17 @@ struct Cluster_GenInf{
 	int clust_RCS;
 };
 
+struct Cluster_QuaInf{
+	int clust_id;
+	int clust_distlong_rms;
+	int clust_distlat_rms;
+	int clust_vrelLong_rms;
+	int clust_vrelLat_rms;
+	int clust_Pdh0;
+	int clust_AmbigState;
+	int clust_InvalidState;
+};
+
 
 
 extern int open_socket(int *socket_id);
@@ -80,3 +92,4 @@ extern void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr);
 extern void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr);
 extern void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr);
 extern void displayRadarState(struct Radar_State Radar_State);
+extern void Read_ClusterQual(int socket_id, struct Cluster_QuaInf *Cluster_ptr);
