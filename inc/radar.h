@@ -27,6 +27,7 @@
 #define Cluster_Gen 0x701
 #define scal_dist 0.2
 #define scal_vrel 0.25
+#define RCS_res 0.5
 #define offst_dtlong -500
 #define offst_dtlat -102.3
 #define offst_vrellong -128
