@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <assert.h>
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -33,7 +33,12 @@
 #define offst_vrellong -128
 #define offst_vrellat -64
 #define offst_rcs -64
-	
+
+#define X_max 12			/* Maximum of X-Axis */
+#define X_min 0			/* Minimum of X-Axis */
+#define Y_max 8.34		/* Maximum of Y-Axis */
+#define Y_min 0			/* Minimum of Y-Axis */
+#define BUF_LEN 20			/* Number of Elements in the Path-Buffer */
 
 
 
@@ -75,6 +80,14 @@ struct Cluster_GenInf{
 	int clust_RCS;
 };
 
+struct Cluster_GenInf_ar{
+	int clust_id;
+	int clust_distlong;
+	int clust_distlat;
+};
+
+
+
 struct Cluster_QuaInf{
 	int clust_id;
 	int clust_distlong_rms;
@@ -86,11 +99,17 @@ struct Cluster_QuaInf{
 	int clust_InvalidState;
 };
 
-
+struct Path_Buf{
+	int Elements;		/* Number of Elements in the Path_Buf 	*/
+	float x[BUF_LEN];	/* X-Kooordinate of a Path-Point	*/
+	float y[BUF_LEN];	/* Y-Koordinate of a Path-Point		*/
+};
 
 extern int open_socket(int *socket_id);
 extern void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr);
-extern void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr);
+extern void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr, struct Cluster_GenInf_ar *Geninf_array);
 extern void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr);
 extern void displayRadarState(struct Radar_State Radar_State);
 extern void Read_ClusterQual(int socket_id, struct Cluster_QuaInf *Cluster_ptr);
+extern void Init_Gnuplot(FILE *Gnu_fd);
+extern void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClusters);

@@ -7,9 +7,9 @@ int open_socket(int *socket_id){
 /* Open an existing CAN-Device File and generate a Socket-ID.		*/
 /* Function give a -1 back if the device is not existing		*/
 /* If the Socket-ID was succsessfully opened the function give a 0 back	*/
- 
 
-	
+
+
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 	struct can_frame frame_read;
@@ -38,7 +38,7 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
 	int nbytes;
 	int tempFrame = 0;
 
-	nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));  
+	nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
 
 	if	(frame_read.can_id == Cluster_stat){
 		Cluster_ptr->near_target = (int)frame_read.data[0];
@@ -50,50 +50,53 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
 
 		Cluster_ptr->interface = ((int)frame_read.data[4] >> 4) & 0x0f;
 	}
-		  
+
 }
 
 
-  void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr){
+  void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr, struct Cluster_GenInf_ar *Geninf_array){
 /* Read in Cluster Genral Information form the CAN id 701 */
   struct can_frame frame_read;
+
   int tempFrame1 = 0;
   int tempFrame2 = 0;
-  int nbytes;	
+  int nbytes;
   memset(Cluster_ptr, 0, sizeof(struct Cluster_GenInf));
   nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
 
   if (frame_read.can_id == Cluster_Gen){
     Cluster_ptr->clust_id = (int)frame_read.data[0];
-	
+    Geninf_array->clust_id = Cluster_ptr->clust_id;
     tempFrame1 = frame_read.data[1];
     tempFrame1 = tempFrame1 << 5;
     tempFrame2 = frame_read.data[2];
     tempFrame2 = tempFrame2 >> 3;
-    Cluster_ptr->clust_distlong = (scal_dist*(tempFrame1 + tempFrame2)) + offst_dtlong;     	
+    Cluster_ptr->clust_distlong = (scal_dist*(tempFrame1 + tempFrame2)) + offst_dtlong;
+    Geninf_array->clust_distlong = Cluster_ptr->clust_distlong;
     tempFrame1 = 0;
-    tempFrame2 = 0;		
+    tempFrame2 = 0;
 
-     	
+
     tempFrame1 = frame_read.data[2] & 0x03;
-    tempFrame1 = tempFrame1 << 8;     		
+    tempFrame1 = tempFrame1 << 8;
     Cluster_ptr->clust_distlat = (scal_dist*(tempFrame1 + (int)frame_read.data[3]))+offst_dtlat;
-    tempFrame1 = 0;		
+    Geninf_array->clust_distlat = Cluster_ptr->clust_distlat;
+    tempFrame1 = 0;
 
     tempFrame1 = frame_read.data[4];
     tempFrame1 = tempFrame1 << 2;
     tempFrame2 = frame_read.data[5];
-    tempFrame2 = tempFrame1 >> 6;     		
+    tempFrame2 = tempFrame1 >> 6;
     Cluster_ptr->clust_vrelLong = (scal_vrel *(tempFrame1 + (tempFrame2 & 0x03)))+offst_vrellong;
     tempFrame1 = 0;
-    tempFrame2 = 0;    
+    tempFrame2 = 0;
 
     tempFrame1 = frame_read.data[5] & 0x3f;
     tempFrame1 = tempFrame1 << 3;
     tempFrame2 = frame_read.data[6];
-    tempFrame2 = tempFrame1 >> 5;     		     		
+    tempFrame2 = tempFrame1 >> 5;
     Cluster_ptr->clust_vrelLat = (scal_vrel*((tempFrame1) + tempFrame2))+offst_vrellat;
-  
+
     Cluster_ptr->clust_dycprop = ((int)frame_read.data[6] & 0x07);
     Cluster_ptr->clust_RCS =(RCS_res * (int) (frame_read.data[7]))+ offst_rcs;
 
@@ -109,31 +112,31 @@ void Read_ClusterQual(int socket_id, struct Cluster_QuaInf *Cluster_ptr){
 	int tempFrame1 = 0;
   	int tempFrame2 = 0;
 	memset(Cluster_ptr, 0, sizeof(struct Cluster_QuaInf));
-	
+
 	nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
 
 	if(frame_read.can_id == Cluster_QuaInfId){
 	 	Cluster_ptr -> clust_id = (int)frame_read.data[0];
-		
+
 
 		tempFrame1 = frame_read.data[1];
 		tempFrame1 = tempFrame1 >> 3;
 		Cluster_ptr -> clust_distlong_rms = tempFrame1;
-		tempFrame1 = 0;		
+		tempFrame1 = 0;
 
 		tempFrame1 = frame_read.data[2];
-		tempFrame1 = tempFrame1 >>  6;	
+		tempFrame1 = tempFrame1 >>  6;
 		Cluster_ptr -> clust_distlat_rms = (((int)frame_read.data[1] << 2) & 0x1c) + (tempFrame1 & 0x03);
 		tempFrame1 = 0;
 
 
 		tempFrame1 = frame_read.data[2];
-		tempFrame1 = tempFrame1 >>  1;	
+		tempFrame1 = tempFrame1 >>  1;
 		Cluster_ptr -> clust_vrelLong_rms  = tempFrame1 & 0x1f;
 		tempFrame1 = 0;
 
 		tempFrame1 = frame_read.data[3];
-		tempFrame1 = tempFrame1 >>  4;	
+		tempFrame1 = tempFrame1 >>  4;
 		Cluster_ptr ->clust_vrelLat_rms= (((int)frame_read.data[2] << 4) & 0x10) + tempFrame1;
 		tempFrame1 = 0;
 
@@ -163,19 +166,19 @@ void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr){
 	int tempFrame1 = 0;
   	int tempFrame2 = 0;
 
-	nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));  
+	nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
 
 	if	(frame_read.can_id == RadarState){
 		tempFrame1 = frame_read.data[0];
 		tempFrame1 = tempFrame1 >> 6;
 		Radar_State_ptr->NVMReadStatus = tempFrame1 & 0x01;
-		tempFrame1 = 0;		
+		tempFrame1 = 0;
 
 		tempFrame1 = frame_read.data[0];
 		tempFrame1 = tempFrame1 >> 7;
 		Radar_State_ptr->NVMwriteStatus = tempFrame1 & 0x01;
 		tempFrame1 = 0;
-		
+
 		tempFrame1 = frame_read.data[1];
 		tempFrame1 = tempFrame1 << 2;
 		tempFrame2 = frame_read.data[2];
@@ -187,30 +190,30 @@ void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr){
 		tempFrame1 = frame_read.data[2];
 		tempFrame1 = tempFrame1 >> 5;
 		Radar_State_ptr->Persistent_Error = tempFrame1 & 0x01;
-		tempFrame1 = 0;	
+		tempFrame1 = 0;
 
 		tempFrame1 = frame_read.data[2];
 		tempFrame1 = tempFrame1 >> 4;
 		Radar_State_ptr->Interference = tempFrame1 & 0x01;
-		tempFrame1 = 0;	
+		tempFrame1 = 0;
 
-		
+
 		tempFrame1 = frame_read.data[2];
 		tempFrame1 = tempFrame1 >> 3;
 		Radar_State_ptr->Temperature_Error = tempFrame1 & 0x01;
-		tempFrame1 = 0;	
+		tempFrame1 = 0;
 
-		
+
 		tempFrame1 = frame_read.data[2];
 		tempFrame1 = tempFrame1 >> 2;
 		Radar_State_ptr->Temporary_Error  = tempFrame1 & 0x01;
-		tempFrame1 = 0;	
+		tempFrame1 = 0;
 
 		tempFrame1 = frame_read.data[2];
 		tempFrame1 = tempFrame1 >> 1;
 		Radar_State_ptr->Voltage_Error  = tempFrame1 & 0x01;
-		tempFrame1 = 0;	
-		
+		tempFrame1 = 0;
+
 		tempFrame1 = frame_read.data[4];
 		tempFrame1 = tempFrame1 >> 7;
 		Radar_State_ptr->RadarPowerCfg = ((int)frame_read.data[3] << 1)  + tempFrame1;
@@ -250,7 +253,7 @@ void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr){
 
 		Radar_State_ptr->RCS_Threshold = ((int)frame_read.data[7] >> 2) & 0x07;
 	}
-		  
+
 }
 
 
@@ -277,7 +280,7 @@ void displayRadarState(struct Radar_State Radar_State)
 			printf("%s\n", (Radar_State.Voltage_Error == 1) ? "Voltage error is active":"No voltage error");
 
 			printf("Sensor ID = %d\n", Radar_State.SensorID);
-			
+
 			/*Current configuration of sorting index for object list*/
 			if(0 == Radar_State.SortIndex)
 			{
@@ -309,9 +312,9 @@ void displayRadarState(struct Radar_State Radar_State)
 			{
 				printf("-9dB Tx gain\n");
 			}
-			
+
 			/*Active if relay control message is sent*/
-			printf("Control relay configuration is %s\n", (Radar_State.CtrlRelayCfg == 1) ? "active":"inactive");	
+			printf("Control relay configuration is %s\n", (Radar_State.CtrlRelayCfg == 1) ? "active":"inactive");
 
 			/*Currently selected output type as either clusters or objects*/
 			if(0 == Radar_State.OutputTypeCfg)
@@ -326,13 +329,13 @@ void displayRadarState(struct Radar_State Radar_State)
 			{
 				printf("Send Clusters\n");
 			}
-			
+
 			/*Active if quality information is sent for clusters or objects*/
 			printf("Sending quality information is %s\n", (Radar_State.SendQualityCfg == 1) ? "active":"inactive");
 
 			/*Active if extended information is sent for objects*/
-			printf("Sending extended information is %s\n", (Radar_State.SendExtInfoCfg == 1) ? "active":"inactive");	
-			
+			printf("Sending extended information is %s\n", (Radar_State.SendExtInfoCfg == 1) ? "active":"inactive");
+
 			/*Shows the state of the speed and yaw rate input signals*/
 			if(0 == Radar_State.MotionRxState)
 			{
@@ -352,7 +355,34 @@ void displayRadarState(struct Radar_State Radar_State)
 			}
 
 			/*If active the high sensitivity mode of sensor is active*/
-			printf("RCS threshold has %s\n", (Radar_State.RCS_Threshold == 1) ? "high sensitivity":"standard sensitivity");	
-	
+			printf("RCS threshold has %s\n", (Radar_State.RCS_Threshold == 1) ? "high sensitivity":"standard sensitivity");
+
 }
 
+
+
+void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClusters){
+	int i;
+	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue',"
+	 " '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'yellow',"
+	 " '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange',"
+	 " '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
+	for(i = 0; i < numClusters; i++){
+	  fprintf(Gnu_fd,"%d %d \n",Geninf_array[i].clust_distlong,Geninf_array[i].clust_distlat);
+		fprintf(Gnu_fd, "e\n");
+		fflush(Gnu_fd);
+	}
+
+}
+
+
+void Init_Gnuplot(FILE *Gnu_fd){
+	fprintf(Gnu_fd, "set title \"RADAR PLOT\"\n");
+
+	fprintf(Gnu_fd, "set yrange [-100 : 1150]\n");
+	fprintf(Gnu_fd, "set xrange [-103 : 103]\n");	/*Dimension of the Radar view*/
+	fprintf(Gnu_fd, "plot '-'\n");
+	fprintf(Gnu_fd, "0 0\n");
+	fprintf(Gnu_fd, "e\n");
+	fflush(Gnu_fd);
+}
