@@ -40,6 +40,18 @@
 #define Y_min 0			/* Minimum of Y-Axis */
 #define BUF_LEN 20			/* Number of Elements in the Path-Buffer */
 
+#define offset_DistLat -204.6
+#define Object_stat 0x60A
+#define Object_geninformation 0x60B
+#define Object_qualityinformation 0x60C
+#define Object_extendedinformation 0x60D
+#define scal_object_arel 0.01
+#define offset_obj_arellong -10
+#define offset_obj_arellat -2.5
+#define scal_obj_orientationangle 0.4
+#define offset_obj_orientationangle -180
+#define Object_collisiondetect 0x60E
+
 
 
 struct Cluster{
@@ -105,6 +117,73 @@ struct Path_Buf{
 	float y[BUF_LEN];	/* Y-Koordinate of a Path-Point		*/
 };
 
+
+
+struct Object_0_Status{
+	int Obj_NofObjects;
+	int Obj_MeasCounter;
+	int Obj_InterfaceVersion;
+	};
+
+struct Object_Gen_Information {
+	int Obj_ID;
+	int Obj_DistLong;
+	int Obj_DistLat;
+	int Obj_VrelLong;
+	int Obj_VrelLat;
+	int Obj_DynProp;
+	int Obj_RCS;
+};
+
+struct Object_GenInf_ar{
+	int Obj_ID;
+	int Obj_DistLong;
+	int Obj_DistLat;
+};
+
+struct Object_Quality_Information {
+	int Obj_ID;
+	int Obj_DistLong_rms;
+	int Obj_DistLat_rms;
+	int Obj_VrelLong_rms;
+	int Obj_VrelLat_rms;
+	int Obj_ArelLong_rms;
+	int Obj_ArelLat_rms;
+	int Obj_Orientation_rms;
+	int Obj_ProbOfExist;
+	int Obj_MeasState;
+
+};
+
+struct Object_Extended_Information {
+	int Obj_ID;
+	int Obj_ArelLong;
+	int Obj_ArelLat;
+	int Obj_Class;
+	int Obj_OrientationAngle;
+	int Obj_Length;
+	int Obj_Width;
+
+};
+
+struct Object_CollisionDetection_Warning {
+
+	int Obj_ID;
+	int Obj_CollDetRegionBitField;
+	int Reserved1;
+	int Reserved2;
+
+};
+
+
+extern void Display_Object_0 (int socket_id, struct Object_0_Status *Object_0_Status);
+extern void Object_Gen_Information( int socket_id, struct Object_Gen_Information *Object_Gen_Information,
+	                                  struct Object_GenInf_ar *Geninf_array);
+extern void Object_Quality_Information( int socket_id, struct Object_Quality_Information *Object_Quality_Information);
+extern void Object_Extended_Information( int socket_id, struct Object_Extended_Information *Object_Extended_Information);
+extern void Object_CollisionDetection_Warning (int socket_id, struct Object_CollisionDetection_Warning *Object_CollisionDetection_Warning);
+
+
 extern int open_socket(int *socket_id);
 extern void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr);
 extern void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr, struct Cluster_GenInf_ar *Geninf_array);
@@ -113,3 +192,4 @@ extern void displayRadarState(struct Radar_State Radar_State);
 extern void Read_ClusterQual(int socket_id, struct Cluster_QuaInf *Cluster_ptr);
 extern void Init_Gnuplot(FILE *Gnu_fd);
 extern void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClusters);
+extern void configRadar(int socket_id, int flag);

@@ -2,6 +2,7 @@
 
 #include "../inc/radar.h"
 
+
 int open_socket(int *socket_id){
 
 /* Open an existing CAN-Device File and generate a Socket-ID.		*/
@@ -72,6 +73,9 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
     tempFrame2 = frame_read.data[2];
     tempFrame2 = tempFrame2 >> 3;
     Cluster_ptr->clust_distlong = (scal_dist*(tempFrame1 + tempFrame2)) + offst_dtlong;
+		if(Cluster_ptr->clust_distlong > 500)
+			Cluster_ptr->clust_distlong = 0;
+
     Geninf_array->clust_distlong = Cluster_ptr->clust_distlong;
     tempFrame1 = 0;
     tempFrame2 = 0;
@@ -80,6 +84,8 @@ void Read_Cluster(int socket_id, struct Cluster *Cluster_ptr){
     tempFrame1 = frame_read.data[2] & 0x03;
     tempFrame1 = tempFrame1 << 8;
     Cluster_ptr->clust_distlat = (scal_dist*(tempFrame1 + (int)frame_read.data[3]))+offst_dtlat;
+		if(Cluster_ptr->clust_distlat > 100)
+			Cluster_ptr->clust_distlat = 0;
     Geninf_array->clust_distlat = Cluster_ptr->clust_distlat;
     tempFrame1 = 0;
 
@@ -361,6 +367,31 @@ void displayRadarState(struct Radar_State Radar_State)
 
 
 
+
+void configRadar(int socket_id, int flag)
+{
+	struct can_frame frame_write;
+	int nbytes;
+	int config;
+
+	frame_write.can_id = 0x200;
+	frame_write.can_dlc = 5;
+
+	frame_write.data[0] = 0x08;
+	if(flag == 0)
+	{
+		frame_write.data[4] =  0x08;
+	}
+	else if(flag == 1)
+	{
+		frame_write.data[4] =  0x10;
+  }
+
+	nbytes = write(socket_id, &frame_write, sizeof(struct can_frame));
+}
+
+
+
 void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClusters){
 	int i;
 	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue',"
@@ -368,7 +399,7 @@ void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClus
 	 " '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange',"
 	 " '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
 	for(i = 0; i < numClusters; i++){
-	  fprintf(Gnu_fd,"%d %d \n",Geninf_array[i].clust_distlong,Geninf_array[i].clust_distlat);
+	  fprintf(Gnu_fd,"%d %d \n", Geninf_array[i].clust_distlat, Geninf_array[i].clust_distlong);
 		fprintf(Gnu_fd, "e\n");
 		fflush(Gnu_fd);
 	}
@@ -379,10 +410,239 @@ void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClus
 void Init_Gnuplot(FILE *Gnu_fd){
 	fprintf(Gnu_fd, "set title \"RADAR PLOT\"\n");
 
-	fprintf(Gnu_fd, "set yrange [-100 : 1150]\n");
-	fprintf(Gnu_fd, "set xrange [-103 : 103]\n");	/*Dimension of the Radar view*/
+	fprintf(Gnu_fd, "set yrange [-20 : 20]\n");
+	fprintf(Gnu_fd, "set xrange [-20 : 20]\n");	/*Dimension of the Radar view*/
 	fprintf(Gnu_fd, "plot '-'\n");
 	fprintf(Gnu_fd, "0 0\n");
 	fprintf(Gnu_fd, "e\n");
 	fflush(Gnu_fd);
+}
+
+
+
+
+void Display_Object_0 (int socket_id, struct Object_0_Status *Object_0_Status)
+{
+  struct can_frame frame_read;
+  int tempFrame1 = 0;
+  int nbytes;
+  // memset(Cluster_ptr, 0, sizeof(struct Cluster_GenInf));
+  nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
+
+	if	(frame_read.can_id == Object_stat)
+	{
+		Object_0_Status->Obj_NofObjects = (int)frame_read.data[0];
+		tempFrame1 = frame_read.data[1];
+		tempFrame1 = tempFrame1 << 8;
+		Object_0_Status->Obj_MeasCounter = (int) (tempFrame1+ frame_read.data[2]);
+		tempFrame1 = frame_read.data[3];
+		tempFrame1 = tempFrame1 >> 4 ;
+		Object_0_Status->Obj_InterfaceVersion = (int)(tempFrame1);
+
+	}
+
+}
+
+void Object_Gen_Information( int socket_id, struct Object_Gen_Information *Object_Gen_Information,
+	                                  struct Object_GenInf_ar *Geninf_array){
+/* Read in Object general Information 0x60B */
+  struct can_frame frame_read;
+  int tempFrame1 = 0;
+  int tempFrame2 = 0;
+  int nbytes;
+  memset(Object_Gen_Information, 0, sizeof(struct Object_Gen_Information));
+  nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
+
+  if (frame_read.can_id == Object_geninformation){
+    Object_Gen_Information->Obj_ID = (int)frame_read.data[0];
+		Geninf_array->Obj_ID = Object_Gen_Information->Obj_ID;
+
+    tempFrame1 = frame_read.data[1];
+    tempFrame1 = tempFrame1 << 5;
+    tempFrame2 = frame_read.data[2];
+    tempFrame2 = tempFrame2 >> 3;
+    Object_Gen_Information->Obj_DistLong = (scal_dist*(int)(tempFrame1 + tempFrame2)) + offst_dtlong;
+		if(Object_Gen_Information->Obj_DistLong > 500)
+		  Object_Gen_Information->Obj_DistLong = 0;
+
+		Geninf_array->Obj_DistLong = Object_Gen_Information->Obj_DistLong;
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+
+    tempFrame1 = frame_read.data[2] & 0x07;
+    tempFrame1 = tempFrame1 << 8;
+    Object_Gen_Information->Obj_DistLat = (scal_dist*(tempFrame1 + (int)frame_read.data[3]))+offset_DistLat;
+		if(Object_Gen_Information->Obj_DistLat > 100)
+			Object_Gen_Information->Obj_DistLat = 0;
+
+		Geninf_array->Obj_DistLat = Object_Gen_Information->Obj_DistLat;
+    tempFrame1 = 0;
+
+    tempFrame1 = frame_read.data[4];
+    tempFrame1 = tempFrame1 << 2;
+    tempFrame2 = frame_read.data[5];
+    tempFrame2 = tempFrame1 >> 6;
+    Object_Gen_Information->Obj_VrelLong = (scal_vrel * (int)(tempFrame1 + tempFrame2))+offst_vrellong;
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+    tempFrame1 = frame_read.data[5] & 0x3f;
+    tempFrame1 = tempFrame1 << 3;
+    tempFrame2 = frame_read.data[6];
+    tempFrame2 = tempFrame1 >> 5;
+    Object_Gen_Information->Obj_VrelLat = (scal_vrel* (int)((tempFrame1) + tempFrame2))+offst_vrellat;
+
+    Object_Gen_Information->Obj_DynProp = ((int)frame_read.data[6] & 0x07);
+    Object_Gen_Information->Obj_RCS =(RCS_res * (int) (frame_read.data[7]))+ offst_rcs;
+
+  }
+
+}
+
+
+void Object_Quality_Information( int socket_id, struct Object_Quality_Information *Object_Quality_Information){
+/* Displays Object quality Information 0x60C */
+  struct can_frame frame_read;
+  int tempFrame1 = 0;
+  int tempFrame2 = 0;
+  int nbytes;
+  memset(Object_Quality_Information, 0, sizeof(struct Object_Quality_Information));
+  nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
+
+  if (frame_read.can_id == Object_qualityinformation){
+    Object_Quality_Information->Obj_ID = (int)frame_read.data[0];
+	Object_Quality_Information->Obj_DistLong_rms = (int)frame_read.data[1] & 0xf8;
+
+    tempFrame1 = frame_read.data[1] & 0x07;
+    tempFrame1 = tempFrame1 << 2;
+    tempFrame2 = frame_read.data[2] & 0xc0;
+    tempFrame2 = tempFrame2 >> 6;
+    Object_Quality_Information->Obj_DistLat_rms = (int) (tempFrame1 + tempFrame2);
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+	tempFrame1 = (int)frame_read.data[2] & 0x3e;
+	tempFrame1 = tempFrame1 >> 1;
+
+    Object_Quality_Information->Obj_VrelLong_rms = (int) tempFrame1;
+	tempFrame1 = 0;
+
+
+    tempFrame1 = frame_read.data[2] & 0x01;
+    tempFrame1 = tempFrame1 << 4;
+    tempFrame2 = frame_read.data[6] & 0xf0;
+    tempFrame2 = tempFrame1 >> 4;
+    Object_Quality_Information->Obj_VrelLat_rms = (int) (tempFrame1 + tempFrame2);
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+	tempFrame1 = frame_read.data[3] & 0x0f;
+    tempFrame1 = tempFrame1 << 1;
+    tempFrame2 = frame_read.data[4] & 0x80;
+    tempFrame2 = tempFrame2 >> 7;
+    Object_Quality_Information->Obj_ArelLong_rms = (int) (tempFrame1 + tempFrame2);
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+	tempFrame1 = (int)frame_read.data[4] & 0x7c;
+	tempFrame1 = tempFrame1 >> 2;
+	Object_Quality_Information->Obj_ArelLat_rms = (int) tempFrame1;
+	tempFrame1 = 0;
+
+
+	tempFrame1 = frame_read.data[4] & 0x03;
+    tempFrame1 = tempFrame1 << 3;
+    tempFrame2 = frame_read.data[5] & 0xe0;
+    tempFrame2 = tempFrame2 >> 5;
+    Object_Quality_Information->Obj_Orientation_rms = (int) (tempFrame1 + tempFrame2);
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+	tempFrame1 = (int)frame_read.data[6] & 0xd0;
+	tempFrame1 = tempFrame1 >> 5;
+
+	tempFrame2 = (int)frame_read.data[6] & 0x1c;
+	tempFrame2 = tempFrame2 >> 2;
+
+	Object_Quality_Information->Obj_ProbOfExist = (int) tempFrame1;
+	Object_Quality_Information->Obj_MeasState = (int) tempFrame2;
+	tempFrame1 = 0;
+    tempFrame2 = 0;
+
+  }
+
+}
+
+void Object_Extended_Information( int socket_id, struct Object_Extended_Information *Object_Extended_Information){
+/* Read in Object extended Information 0x60D */
+  struct can_frame frame_read;
+  int tempFrame1 = 0;
+  int tempFrame2 = 0;
+  int nbytes;
+  memset(Object_Extended_Information, 0, sizeof(struct Object_Extended_Information));
+  nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
+
+  if (frame_read.can_id == Object_extendedinformation){
+    Object_Extended_Information->Obj_ID = (int)frame_read.data[0];
+
+    tempFrame1 = frame_read.data[1];
+    tempFrame1 = tempFrame1 << 3;
+    tempFrame2 = frame_read.data[2];
+    tempFrame2 = tempFrame2 >> 5;
+    Object_Extended_Information->Obj_ArelLong = (scal_object_arel* (int)(tempFrame1 + tempFrame2)) + offset_obj_arellong;
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+
+    tempFrame1 = frame_read.data[2] & 0x1f;
+    tempFrame1 = tempFrame1 << 4;
+    tempFrame2 = frame_read.data[3] & 0xf0;
+	tempFrame2 = tempFrame2 >> 4;
+    Object_Extended_Information->Obj_ArelLat = (scal_object_arel* (int)(tempFrame1 + tempFrame2))+offset_obj_arellat;
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+
+	Object_Extended_Information->Obj_Class = (int) (frame_read.data[3] & 0x07);
+
+    tempFrame1 = frame_read.data[4];
+    tempFrame1 = tempFrame1 << 2;
+    tempFrame2 = frame_read.data[5] & 0xc0;
+    tempFrame2 = tempFrame1 >> 6;
+    Object_Extended_Information->Obj_OrientationAngle = (scal_obj_orientationangle * (int)(tempFrame1 + tempFrame2))+offset_obj_orientationangle;
+    tempFrame1 = 0;
+    tempFrame2 = 0;
+
+    Object_Extended_Information->Obj_Length = (scal_dist*( (int) frame_read.data[6]));
+
+    Object_Extended_Information->Obj_Width = ( scal_dist*((int)frame_read.data[7] ));
+
+
+  }
+
+}
+
+
+void Object_CollisionDetection_Warning (int socket_id, struct Object_CollisionDetection_Warning *Object_CollisionDetection_Warning)
+{
+/* Collision detection warning for Object 0x60E */
+
+  struct can_frame frame_read;
+  int nbytes;
+
+  nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
+
+	if	(frame_read.can_id == Object_collisiondetect)
+	{
+		Object_CollisionDetection_Warning->Obj_ID = (int)frame_read.data[0];
+
+		Object_CollisionDetection_Warning->Obj_CollDetRegionBitField = (int) frame_read.data[1];
+
+		Object_CollisionDetection_Warning->Reserved1 = (int) frame_read.data[2] >> 1 ;   /* The below two lines are the changes made */
+
+		Object_CollisionDetection_Warning->Reserved2 = (int) frame_read.data[3] >> 3;
+
+	}
+
 }
