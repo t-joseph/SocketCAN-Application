@@ -8,7 +8,7 @@
 AS=as
 ASFLAGS= -g -o
 CFLAGS= -g 
-CC=gcc
+CC=g++
 SRC=../src/
 INC=../inc/
 PACKAGE = `pkg-config --cflags --libs gtk+-3.0`

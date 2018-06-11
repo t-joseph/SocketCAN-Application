@@ -386,6 +386,10 @@ void configRadar(int socket_id, int flag)
 	{
 		frame_write.data[4] =  0x10;
   }
+	else if(flag == 2)
+	{
+		frame_write.data[4] =  0x0;
+  }
 
 	nbytes = write(socket_id, &frame_write, sizeof(struct can_frame));
 }
@@ -421,7 +425,7 @@ void Init_Gnuplot(FILE *Gnu_fd){
 
 
 
-void Display_Object_0 (int socket_id, struct Object_0_Status *Object_0_Status)
+void Read_Object (int socket_id, struct Object_0_Status *Object_0_Status)
 {
   struct can_frame frame_read;
   int tempFrame1 = 0;

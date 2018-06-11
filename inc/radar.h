@@ -176,7 +176,7 @@ struct Object_CollisionDetection_Warning {
 };
 
 
-extern void Display_Object_0 (int socket_id, struct Object_0_Status *Object_0_Status);
+extern void Read_Object (int socket_id, struct Object_0_Status *Object_0_Status);
 extern void Object_Gen_Information( int socket_id, struct Object_Gen_Information *Object_Gen_Information,
 	                                  struct Object_GenInf_ar *Geninf_array);
 extern void Object_Quality_Information( int socket_id, struct Object_Quality_Information *Object_Quality_Information);
