@@ -1,13 +1,13 @@
 #
 # Linux makefile
-# Use with make 
+# Use with make
 #
 
 .SUFFIXES: .o .asm .c
 
 AS=as
 ASFLAGS= -g -o
-CFLAGS= -g 
+CFLAGS= -g
 CC=g++
 SRC=../src/
 INC=../inc/
@@ -18,11 +18,11 @@ LIBS = `pkg-config --libs gtk+-3.0`
 
 all: radar_rec
 
-radar_rec : main.o modules.o  
-	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-3.0` -o ../bin/radar_rec main.o modules.o -L/usr/local/lib -lm `pkg-config --libs gtk+-3.0`
+radar_rec : main.o modules.o
+	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-3.0` -o ../bin/radar_rec main.o modules.o -L/usr/local/lib -lm `pkg-config --libs gtk+-3.0` -lGL -lGLU -lglut
 
 main.o : $(SRC)main.c $(INC)radar.h
-	 $(CC) -c $(CFLAGS) `pkg-config --cflags gtk+-3.0`  $(SRC)main.c `pkg-config --libs gtk+-3.0`
+	 $(CC) -c $(CFLAGS) `pkg-config --cflags gtk+-3.0`  $(SRC)main.c `pkg-config --libs gtk+-3.0` -lGL -lGLU -lglut
 
 modules.o : $(SRC)modules.c $(INC)radar.h
 	$(CC) -c $(CFLAGS) $(SRC)modules.c
@@ -33,9 +33,3 @@ clean :
 
 debug :
 	gdb ./Current -x gdb_command
-
-
-
-
-
-

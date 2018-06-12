@@ -8,14 +8,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CLUSTER 1
-#define OBJECT 0
-#define NONE 2
 
+using namespace std;
+
+//Global variable declarations
 static int socket_id;
-static char dataType[16];
+static char dataType[SIZE];
 static int clusterOrObject = 1;
-
+struct Object_GenInf_ar GeninfObj_array[SIZE];
+struct Cluster_GenInf_ar Geninf_array[SIZE];
 GtkWidget *window1;
 GtkWidget *LabelTop;
 GtkWidget *Labelc1,*Labelc2,*Labelc3,*Labelc4,*Labelc5,*Labelc6,*Labelc7,*Labelc8,*Labelc9,*Labelc10;
@@ -36,7 +37,7 @@ GtkWidget *LabelObjy1,*LabelObjy2,*LabelObjy3,*LabelObjy4,*LabelObjy5,*LabelObjy
           *LabelObjy8,*LabelObjy9,*LabelObjy10;
 
 
-
+//Static function definitions
 static void updateLabel(GtkLabel *sum, int num)
 {
     gchar *display;
@@ -51,84 +52,6 @@ static void updateLabelText(GtkLabel *sum, char* txt)
 		gtk_label_set_text (GTK_LABEL(sum), display); //set label to "display
     g_free(display);                              //free display
 }
-
-static void execute_close(GtkLabel *widget, gpointer data)
-{
-  gtk_widget_hide(GTK_WIDGET(Labelc1));
-  gtk_widget_hide(GTK_WIDGET(Labelc2));
-  gtk_widget_hide(GTK_WIDGET(Labelc3));
-  gtk_widget_hide(GTK_WIDGET(Labelc4));
-  gtk_widget_hide(GTK_WIDGET(Labelc5));
-  gtk_widget_hide(GTK_WIDGET(Labelc6));
-  gtk_widget_hide(GTK_WIDGET(Labelc7));
-  gtk_widget_hide(GTK_WIDGET(Labelc8));
-  gtk_widget_hide(GTK_WIDGET(Labelc9));
-  gtk_widget_hide(GTK_WIDGET(Labelc10));
-  gtk_widget_hide(GTK_WIDGET(Labelx1));
-  gtk_widget_hide(GTK_WIDGET(Labelx2));
-  gtk_widget_hide(GTK_WIDGET(Labelx3));
-  gtk_widget_hide(GTK_WIDGET(Labelx4));
-  gtk_widget_hide(GTK_WIDGET(Labelx5));
-  gtk_widget_hide(GTK_WIDGET(Labelx6));
-  gtk_widget_hide(GTK_WIDGET(Labelx7));
-  gtk_widget_hide(GTK_WIDGET(Labelx8));
-  gtk_widget_hide(GTK_WIDGET(Labelx9));
-  gtk_widget_hide(GTK_WIDGET(Labelx10));
-  gtk_widget_hide(GTK_WIDGET(Labely1));
-  gtk_widget_hide(GTK_WIDGET(Labely2));
-  gtk_widget_hide(GTK_WIDGET(Labely3));
-  gtk_widget_hide(GTK_WIDGET(Labely4));
-  gtk_widget_hide(GTK_WIDGET(Labely5));
-  gtk_widget_hide(GTK_WIDGET(Labely6));
-  gtk_widget_hide(GTK_WIDGET(Labely7));
-  gtk_widget_hide(GTK_WIDGET(Labely8));
-  gtk_widget_hide(GTK_WIDGET(Labely9));
-  gtk_widget_hide(GTK_WIDGET(Labely10));
-
-  gtk_widget_hide(GTK_WIDGET(LabelObj1Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj2Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj3Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj4Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj5Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj6Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj7Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj8Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj9Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObj10Txt));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx1));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx2));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx3));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx4));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx5));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx6));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx7));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx8));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx9));
-  gtk_widget_hide(GTK_WIDGET(LabelObjx10));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy1));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy2));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy3));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy4));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy5));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy6));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy7));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy8));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy9));
-  gtk_widget_hide(GTK_WIDGET(LabelObjy10));
-
-  gtk_widget_hide(GTK_WIDGET(LabelDT));
-  gtk_widget_hide(GTK_WIDGET(Labeldata));
-  gtk_widget_hide(GTK_WIDGET(Labelnum));
-  gtk_widget_hide(GTK_WIDGET(Labeltxt));
-  gtk_widget_hide(GTK_WIDGET(button1));
-  gtk_widget_hide(GTK_WIDGET(button2));
-  gtk_widget_hide(GTK_WIDGET(LabelTop1));
-  gtk_widget_hide(GTK_WIDGET(LabelTop));
-  gtk_widget_hide(GTK_WIDGET(LabelDT));
-  gtk_widget_hide(GTK_WIDGET(window1));
-}
-
-
 
 static void send_can_obj (GtkWidget *widget,
              gpointer   data)
@@ -154,16 +77,117 @@ int main(int argc,char **argv){
 	struct Cluster_GenInf Cluster_gen;
 	struct Radar_State Radar_State;
 	struct Cluster_QuaInf Cluster_qual;
-  struct Cluster_GenInf_ar Geninf_array[10];
   struct Object_0_Status Object_Status;
   struct Object_Gen_Information Object_gen;
-  struct Object_GenInf_ar GeninfObj_array[10];
 	int numObstacles = 0;
   int j;
-  FILE *fp;
+  FILE *fp1, *fp2;
+  FILE *Gnu_fd1;
 
+
+	gtk_init (&argc,&argv);
+  gtkConfiguration();
+
+	error = open_socket(&socket_id);
+  if(error == -1)
 	{
-		gtk_init (&argc,&argv);
+		printf("Failed Connection \n");
+		return -1;
+	}
+
+  //creating GNU file descriptor for clusters and objects
+	Gnu_fd1 = popen ("gnuplot -persistent", "w");
+	if(Gnu_fd1 == 0)
+	{
+		printf("Error during Open Pipe for gnuplot! \n");
+		return -1;
+	}
+
+  //Initializing the GNU plot for clusters and objects
+	Init_Gnuplot_Clusters(Gnu_fd1);
+  //Init_Gnuplot_Objects(Gnu_fd2);
+
+
+	if(error == 0)
+	{
+		fp1 = fopen("fileCluster.txt", "w");
+		fprintf(fp1, "ClustId \tLongVal \tLatVal\n");
+    fp2 = fopen("fileObject.txt", "w");
+		fprintf(fp2, "ObjId \tLongVal \tLatVal\n");
+		do {
+  		    while (gtk_events_pending())
+            gtk_main_iteration();
+    			printf("***********************************************************************************\n");
+
+    			/*Radar State Information*/
+    			//printf("\tRadar State Output\n");
+    			Read_Radar_State(socket_id, &Radar_State);
+    			//displayRadarState(Radar_State);
+
+
+    			Read_Cluster(socket_id, &Cluster_Status);
+          Read_Object(socket_id, &Object_Status);
+          if(clusterOrObject == CLUSTER)
+          {
+    			  numObstacles = Cluster_Status.near_target + Cluster_Status.far_target;
+          }
+          else if(clusterOrObject == OBJECT)
+          {
+            numObstacles = Object_Status.Obj_NofObjects;
+          }
+          else
+          {
+            numObstacles = 0;
+          }
+
+          if(numObstacles < 0 || numObstacles > 255)
+            numObstacles = 0;
+
+    			if(numObstacles > 10)
+     			numObstacles = 10;
+
+          if(clusterOrObject == CLUSTER)
+          {
+            memset(&Cluster_gen, 0, sizeof(struct Cluster_GenInf ));
+            memset(Geninf_array, 0, 10*sizeof(struct Cluster_GenInf_ar));
+      			for(j= 0; j< numObstacles; j++)
+      			{
+      			  Read_ClusterGen(socket_id, &Cluster_gen, &Geninf_array[j]);
+              fprintf(fp1, "%d \t\t %d \t\t %d\n",Geninf_array[j].clust_id,
+              Geninf_array[j].clust_distlong, Geninf_array[j].clust_distlat);
+      			}
+      			gtkUpdateClusterLabels(Geninf_array, numObstacles);
+            gnu_point_cluster(Gnu_fd1, Geninf_array, numObstacles);
+          }
+          else if(clusterOrObject == OBJECT)
+          {
+            memset(&Object_gen, 0, sizeof(struct Object_Gen_Information));
+            memset(GeninfObj_array, 0, 10*sizeof(struct Object_GenInf_ar));
+            for(j= 0; j< numObstacles; j++)
+            {
+              Object_Gen_Information(socket_id, &Object_gen, &GeninfObj_array[j]);
+              fprintf(fp2, "%d \t\t %d \t\t %d\n",GeninfObj_array[j].Obj_ID,
+              GeninfObj_array[j].Obj_DistLong, GeninfObj_array[j].Obj_DistLat);
+
+            }
+            gtkUpdateObjectLabels(GeninfObj_array, numObstacles);
+            gnu_point_object(Gnu_fd1, GeninfObj_array, numObstacles);
+          }
+
+
+  			printf("***********************************************************************************\n");
+  		} while(1);
+  		fclose(fp1);
+      fclose(fp2);
+	}
+
+	close(socket_id);
+	return(0);
+}
+
+
+void gtkConfiguration()
+{
     checkbutton1 = gtk_check_button_new_with_label("Show ID 1");
     checkbutton2 = gtk_check_button_new_with_label("Show ID 2");
     checkbutton3 = gtk_check_button_new_with_label("Show ID 3");
@@ -358,193 +382,99 @@ int main(int argc,char **argv){
 
     g_signal_connect(button2,"clicked",G_CALLBACK(send_can_obj),NULL);
     g_signal_connect(button1,"clicked",G_CALLBACK(send_can_cluster),NULL);
-    g_signal_connect(G_OBJECT(window1),"destroy",G_CALLBACK(execute_close),NULL);
-	}
-
-	error = open_socket(&socket_id);
-  if(error == -1)
-	{
-		printf("Failed Connection \n");
-		return -1;
-	}
-
-  /*
-	FILE *Gnu_fd;
-	struct 	 lab;
+    g_signal_connect(G_OBJECT(window1),"destroy",G_CALLBACK(gtk_widget_hide),NULL);
+}
 
 
-	Gnu_fd = popen ("gnuplot -persistent", "w");
-	if(Gnu_fd == 0)
-	{
-		printf("Error during Open Pipe for gnuplot! \n");
-		return -1;
-	}
+void gtkUpdateClusterLabels(struct Cluster_GenInf_ar *Geninf_array, int numObstacles)
+{
+  updateLabelText(GTK_LABEL(Labeldata), dataType);
+  updateLabel(GTK_LABEL(Labeltxt),numObstacles);
+  updateLabel(GTK_LABEL(Labelx1),Geninf_array[0].clust_distlong);
+  updateLabel(GTK_LABEL(Labely1),Geninf_array[0].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx2),Geninf_array[1].clust_distlong);
+  updateLabel(GTK_LABEL(Labely2),Geninf_array[1].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx3),Geninf_array[2].clust_distlong);
+  updateLabel(GTK_LABEL(Labely3),Geninf_array[2].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx4),Geninf_array[3].clust_distlong);
+  updateLabel(GTK_LABEL(Labely4),Geninf_array[3].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx5),Geninf_array[4].clust_distlong);
+  updateLabel(GTK_LABEL(Labely5),Geninf_array[4].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx6),Geninf_array[5].clust_distlong);
+  updateLabel(GTK_LABEL(Labely6),Geninf_array[5].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx7),Geninf_array[6].clust_distlong);
+  updateLabel(GTK_LABEL(Labely7),Geninf_array[6].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx8),Geninf_array[7].clust_distlong);
+  updateLabel(GTK_LABEL(Labely8),Geninf_array[7].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx9),Geninf_array[8].clust_distlong);
+  updateLabel(GTK_LABEL(Labely9),Geninf_array[8].clust_distlat);
+  updateLabel(GTK_LABEL(Labelx10),Geninf_array[9].clust_distlong);
+  updateLabel(GTK_LABEL(Labely10),Geninf_array[9].clust_distlat);
+  updateLabel(GTK_LABEL(LabelObjx1), 0);
+  updateLabel(GTK_LABEL(LabelObjy1), 0);
+  updateLabel(GTK_LABEL(LabelObjx2), 0);
+  updateLabel(GTK_LABEL(LabelObjy2), 0);
+  updateLabel(GTK_LABEL(LabelObjx3), 0);
+  updateLabel(GTK_LABEL(LabelObjy3), 0);
+  updateLabel(GTK_LABEL(LabelObjx4), 0);
+  updateLabel(GTK_LABEL(LabelObjy4), 0);
+  updateLabel(GTK_LABEL(LabelObjx5), 0);
+  updateLabel(GTK_LABEL(LabelObjy5), 0);
+  updateLabel(GTK_LABEL(LabelObjx6), 0);
+  updateLabel(GTK_LABEL(LabelObjy6), 0);
+  updateLabel(GTK_LABEL(LabelObjx7), 0);
+  updateLabel(GTK_LABEL(LabelObjy7), 0);
+  updateLabel(GTK_LABEL(LabelObjx8), 0);
+  updateLabel(GTK_LABEL(LabelObjy8), 0);
+  updateLabel(GTK_LABEL(LabelObjx9), 0);
+  updateLabel(GTK_LABEL(LabelObjy9), 0);
+  updateLabel(GTK_LABEL(LabelObjx10), 0);
+  updateLabel(GTK_LABEL(LabelObjy10), 0);
+}
 
-	Init_Gnuplot(Gnu_fd);
-  */
 
-	if(error == 0)
-	{
-		fp = fopen("file.txt", "w");
-		fprintf(fp, "ClustId \tLongVal \tLatVal\n");
-		do {
-  		   while (gtk_events_pending())
-         gtk_main_iteration();
-
-
-  			printf("***********************************************************************************\n");
-
-  			/*Radar State Information*/
-  			printf("\tRadar State Output\n");
-  			Read_Radar_State(socket_id, &Radar_State);
-  			displayRadarState(Radar_State);
-
-
-  			Read_Cluster(socket_id, &Cluster_Status);
-        Read_Object(socket_id, &Object_Status);
-        if(clusterOrObject == CLUSTER)
-        {
-  			  numObstacles = Cluster_Status.near_target + Cluster_Status.far_target;
-        }
-        else if(clusterOrObject == OBJECT)
-        {
-          numObstacles = Object_Status.Obj_NofObjects;
-        }
-        else
-        {
-          numObstacles = 0;
-        }
-
-        if(numObstacles < 0 || numObstacles > 255)
-          numObstacles = 0;
-
-  			if(numObstacles > 10)
-   			numObstacles = 10;
-
-        if(clusterOrObject == CLUSTER)
-        {
-          memset(&Cluster_gen, 0, sizeof(struct Cluster_GenInf ));
-          memset(Geninf_array, 0, 10*sizeof(struct Cluster_GenInf_ar));
-    			for(j= 0; j< numObstacles; j++)
-    			{
-    			  Read_ClusterGen(socket_id, &Cluster_gen, &Geninf_array[j]);
-    			}
-
-    			updateLabelText(GTK_LABEL(Labeldata), dataType);
-          updateLabel(GTK_LABEL(Labeltxt),numObstacles);
-    			//updateLabel(GTK_LABEL(Labeltxt),Cluster_Status.near_target + Cluster_Status.far_target);
-    			updateLabel(GTK_LABEL(Labelx1),Geninf_array[0].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely1),Geninf_array[0].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx2),Geninf_array[1].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely2),Geninf_array[1].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx3),Geninf_array[2].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely3),Geninf_array[2].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx4),Geninf_array[3].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely4),Geninf_array[3].clust_distlat);
-    	    updateLabel(GTK_LABEL(Labelx5),Geninf_array[4].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely5),Geninf_array[4].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx6),Geninf_array[5].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely6),Geninf_array[5].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx7),Geninf_array[6].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely7),Geninf_array[6].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx8),Geninf_array[7].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely8),Geninf_array[7].clust_distlat);
-          updateLabel(GTK_LABEL(Labelx9),Geninf_array[8].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely9),Geninf_array[8].clust_distlat);
-    			updateLabel(GTK_LABEL(Labelx10),Geninf_array[9].clust_distlong);
-    			updateLabel(GTK_LABEL(Labely10),Geninf_array[9].clust_distlat);
-
-          updateLabel(GTK_LABEL(LabelObjx1), 0);
-          updateLabel(GTK_LABEL(LabelObjy1), 0);
-          updateLabel(GTK_LABEL(LabelObjx2), 0);
-          updateLabel(GTK_LABEL(LabelObjy2), 0);
-          updateLabel(GTK_LABEL(LabelObjx3), 0);
-          updateLabel(GTK_LABEL(LabelObjy3), 0);
-          updateLabel(GTK_LABEL(LabelObjx4), 0);
-          updateLabel(GTK_LABEL(LabelObjy4), 0);
-          updateLabel(GTK_LABEL(LabelObjx5), 0);
-          updateLabel(GTK_LABEL(LabelObjy5), 0);
-          updateLabel(GTK_LABEL(LabelObjx6), 0);
-          updateLabel(GTK_LABEL(LabelObjy6), 0);
-          updateLabel(GTK_LABEL(LabelObjx7), 0);
-          updateLabel(GTK_LABEL(LabelObjy7), 0);
-          updateLabel(GTK_LABEL(LabelObjx8), 0);
-          updateLabel(GTK_LABEL(LabelObjy8), 0);
-          updateLabel(GTK_LABEL(LabelObjx9), 0);
-          updateLabel(GTK_LABEL(LabelObjy9), 0);
-          updateLabel(GTK_LABEL(LabelObjx10), 0);
-          updateLabel(GTK_LABEL(LabelObjy10), 0);
-          // Code for filter
-/*			if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbutton1))) {
-	       // code if the checkbox is active
-        }
-			   else{
-        // code if the checkbox is inactive
-       }
-*/
-        }
-        else if(clusterOrObject == OBJECT)
-        {
-          memset(&Object_gen, 0, sizeof(struct Object_Gen_Information));
-          memset(GeninfObj_array, 0, 10*sizeof(struct Object_GenInf_ar));
-          for(j= 0; j< numObstacles; j++)
-          {
-            Object_Gen_Information(socket_id, &Object_gen, &GeninfObj_array[j]);
-          }
-
-          updateLabelText(GTK_LABEL(Labeldata), dataType);
-
-          //updateLabel(GTK_LABEL(Labeltxt),Object_Status.Obj_NofObjects);
-          updateLabel(GTK_LABEL(Labeltxt),numObstacles);
-          updateLabel(GTK_LABEL(LabelObjx1),GeninfObj_array[0].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy1),GeninfObj_array[0].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx2),GeninfObj_array[1].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy2),GeninfObj_array[1].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx3),GeninfObj_array[2].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy3),GeninfObj_array[2].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx4),GeninfObj_array[3].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy4),GeninfObj_array[3].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx5),GeninfObj_array[4].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy5),GeninfObj_array[4].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx6),GeninfObj_array[5].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy6),GeninfObj_array[5].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx7),GeninfObj_array[6].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy7),GeninfObj_array[6].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx8),GeninfObj_array[7].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy8),GeninfObj_array[7].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx9),GeninfObj_array[8].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy9),GeninfObj_array[8].Obj_DistLat);
-          updateLabel(GTK_LABEL(LabelObjx10),GeninfObj_array[9].Obj_DistLong);
-          updateLabel(GTK_LABEL(LabelObjy10),GeninfObj_array[9].Obj_DistLat);
-
-          updateLabel(GTK_LABEL(Labelx1),0);
-    			updateLabel(GTK_LABEL(Labely1),0);
-    			updateLabel(GTK_LABEL(Labelx2),0);
-    			updateLabel(GTK_LABEL(Labely2),0);
-    			updateLabel(GTK_LABEL(Labelx3),0);
-    			updateLabel(GTK_LABEL(Labely3),0);
-    			updateLabel(GTK_LABEL(Labelx4),0);
-    			updateLabel(GTK_LABEL(Labely4),0);
-    	    updateLabel(GTK_LABEL(Labelx5),0);
-    			updateLabel(GTK_LABEL(Labely5),0);
-    			updateLabel(GTK_LABEL(Labelx6),0);
-    			updateLabel(GTK_LABEL(Labely6),0);
-    			updateLabel(GTK_LABEL(Labelx7),0);
-    			updateLabel(GTK_LABEL(Labely7),0);
-    			updateLabel(GTK_LABEL(Labelx8),0);
-    			updateLabel(GTK_LABEL(Labely8),0);
-          updateLabel(GTK_LABEL(Labelx9),0);
-    			updateLabel(GTK_LABEL(Labely9),0);
-    			updateLabel(GTK_LABEL(Labelx10),0);
-    			updateLabel(GTK_LABEL(Labely10),0);
-        }
-    			//gnu_point(Gnu_fd, Geninf_array, numObstacles);
-    			printf("***********************************************************************************\n");
-
-  		} while(1);
-  		fclose(fp);
-	}
-
-	close(socket_id);
-	return(0);
+extern void gtkUpdateObjectLabels(struct Object_GenInf_ar *Object_GenInf_ar, int numObstacles)
+{
+  updateLabelText(GTK_LABEL(Labeldata), dataType);
+  updateLabel(GTK_LABEL(Labeltxt),numObstacles);
+  updateLabel(GTK_LABEL(LabelObjx1),GeninfObj_array[0].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy1),GeninfObj_array[0].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx2),GeninfObj_array[1].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy2),GeninfObj_array[1].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx3),GeninfObj_array[2].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy3),GeninfObj_array[2].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx4),GeninfObj_array[3].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy4),GeninfObj_array[3].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx5),GeninfObj_array[4].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy5),GeninfObj_array[4].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx6),GeninfObj_array[5].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy6),GeninfObj_array[5].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx7),GeninfObj_array[6].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy7),GeninfObj_array[6].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx8),GeninfObj_array[7].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy8),GeninfObj_array[7].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx9),GeninfObj_array[8].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy9),GeninfObj_array[8].Obj_DistLat);
+  updateLabel(GTK_LABEL(LabelObjx10),GeninfObj_array[9].Obj_DistLong);
+  updateLabel(GTK_LABEL(LabelObjy10),GeninfObj_array[9].Obj_DistLat);
+  updateLabel(GTK_LABEL(Labelx1),0);
+  updateLabel(GTK_LABEL(Labely1),0);
+  updateLabel(GTK_LABEL(Labelx2),0);
+  updateLabel(GTK_LABEL(Labely2),0);
+  updateLabel(GTK_LABEL(Labelx3),0);
+  updateLabel(GTK_LABEL(Labely3),0);
+  updateLabel(GTK_LABEL(Labelx4),0);
+  updateLabel(GTK_LABEL(Labely4),0);
+  updateLabel(GTK_LABEL(Labelx5),0);
+  updateLabel(GTK_LABEL(Labely5),0);
+  updateLabel(GTK_LABEL(Labelx6),0);
+  updateLabel(GTK_LABEL(Labely6),0);
+  updateLabel(GTK_LABEL(Labelx7),0);
+  updateLabel(GTK_LABEL(Labely7),0);
+  updateLabel(GTK_LABEL(Labelx8),0);
+  updateLabel(GTK_LABEL(Labely8),0);
+  updateLabel(GTK_LABEL(Labelx9),0);
+  updateLabel(GTK_LABEL(Labely9),0);
+  updateLabel(GTK_LABEL(Labelx10),0);
+  updateLabel(GTK_LABEL(Labely10),0);
 }

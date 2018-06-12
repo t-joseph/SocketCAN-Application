@@ -9,12 +9,10 @@ int open_socket(int *socket_id){
 /* Function give a -1 back if the device is not existing		*/
 /* If the Socket-ID was succsessfully opened the function give a 0 back	*/
 
-
-
 	struct sockaddr_can addr;
 	struct ifreq ifr;
 	struct can_frame frame_read;
-	char *ifname = "can0";
+	char ifname[] = "can0";
 
 	*socket_id = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 //	printf("After Socket Socket = %d \n", *socket_id);
@@ -396,13 +394,14 @@ void configRadar(int socket_id, int flag)
 
 
 
-void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClusters){
+void gnu_point_cluster(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numObstacles){
 	int i;
-	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue',"
-	 " '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'yellow',"
-	 " '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange',"
-	 " '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
-	for(i = 0; i < numClusters; i++){
+	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue', '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'yellow'\n");
+	 //" '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'yellow',"
+	 //" '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange'"
+	 //" '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
+	for(i = 0; i < 4; i++)
+	{
 	  fprintf(Gnu_fd,"%d %d \n", Geninf_array[i].clust_distlat, Geninf_array[i].clust_distlong);
 		fprintf(Gnu_fd, "e\n");
 		fflush(Gnu_fd);
@@ -411,16 +410,42 @@ void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClus
 }
 
 
-void Init_Gnuplot(FILE *Gnu_fd){
-	fprintf(Gnu_fd, "set title \"RADAR PLOT\"\n");
+void gnu_point_object(FILE *Gnu_fd, struct Object_GenInf_ar *Object_GenInf_ar, int numObstacles)
+{
+	int i;
+	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue', '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'yellow'\n");
+	 //" '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'yellow',"
+	 //" '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange'"
+	 //" '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
+	for(i = 0; i < 4; i++)
+	{
+	  fprintf(Gnu_fd,"%d %d \n", Object_GenInf_ar[i].Obj_DistLat, Object_GenInf_ar[i].Obj_DistLong);
+		fprintf(Gnu_fd, "e\n");
+		fflush(Gnu_fd);
+	}
+}
 
-	fprintf(Gnu_fd, "set yrange [-20 : 20]\n");
+
+void Init_Gnuplot_Clusters(FILE *Gnu_fd){
+	fprintf(Gnu_fd, "set title \"CLUSTERS PLOT\"\n");
+	fprintf(Gnu_fd, "set yrange [-0 : 20]\n");
 	fprintf(Gnu_fd, "set xrange [-20 : 20]\n");	/*Dimension of the Radar view*/
 	fprintf(Gnu_fd, "plot '-'\n");
 	fprintf(Gnu_fd, "0 0\n");
 	fprintf(Gnu_fd, "e\n");
 	fflush(Gnu_fd);
 }
+
+void Init_Gnuplot_Objects(FILE *Gnu_fd){
+	fprintf(Gnu_fd, "set title \"OBJECTS PLOT\"\n");
+	fprintf(Gnu_fd, "set yrange [-0 : 20]\n");
+	fprintf(Gnu_fd, "set xrange [-20 : 20]\n");	/*Dimension of the Radar view*/
+	fprintf(Gnu_fd, "plot '-'\n");
+	fprintf(Gnu_fd, "0 0\n");
+	fprintf(Gnu_fd, "e\n");
+	fflush(Gnu_fd);
+}
+
 
 
 
@@ -515,67 +540,66 @@ void Object_Quality_Information( int socket_id, struct Object_Quality_Informatio
   nbytes = read(socket_id, &frame_read, sizeof(struct can_frame));
 
   if (frame_read.can_id == Object_qualityinformation){
-    Object_Quality_Information->Obj_ID = (int)frame_read.data[0];
-	Object_Quality_Information->Obj_DistLong_rms = (int)frame_read.data[1] & 0xf8;
+	  Object_Quality_Information->Obj_ID = (int)frame_read.data[0];
+		Object_Quality_Information->Obj_DistLong_rms = (int)frame_read.data[1] & 0xf8;
 
-    tempFrame1 = frame_read.data[1] & 0x07;
-    tempFrame1 = tempFrame1 << 2;
-    tempFrame2 = frame_read.data[2] & 0xc0;
-    tempFrame2 = tempFrame2 >> 6;
-    Object_Quality_Information->Obj_DistLat_rms = (int) (tempFrame1 + tempFrame2);
-    tempFrame1 = 0;
-    tempFrame2 = 0;
+	  tempFrame1 = frame_read.data[1] & 0x07;
+	  tempFrame1 = tempFrame1 << 2;
+	  tempFrame2 = frame_read.data[2] & 0xc0;
+	  tempFrame2 = tempFrame2 >> 6;
+	  Object_Quality_Information->Obj_DistLat_rms = (int) (tempFrame1 + tempFrame2);
+	  tempFrame1 = 0;
+	  tempFrame2 = 0;
 
-	tempFrame1 = (int)frame_read.data[2] & 0x3e;
-	tempFrame1 = tempFrame1 >> 1;
+		tempFrame1 = (int)frame_read.data[2] & 0x3e;
+		tempFrame1 = tempFrame1 >> 1;
 
-    Object_Quality_Information->Obj_VrelLong_rms = (int) tempFrame1;
-	tempFrame1 = 0;
-
-
-    tempFrame1 = frame_read.data[2] & 0x01;
-    tempFrame1 = tempFrame1 << 4;
-    tempFrame2 = frame_read.data[6] & 0xf0;
-    tempFrame2 = tempFrame1 >> 4;
-    Object_Quality_Information->Obj_VrelLat_rms = (int) (tempFrame1 + tempFrame2);
-    tempFrame1 = 0;
-    tempFrame2 = 0;
-
-	tempFrame1 = frame_read.data[3] & 0x0f;
-    tempFrame1 = tempFrame1 << 1;
-    tempFrame2 = frame_read.data[4] & 0x80;
-    tempFrame2 = tempFrame2 >> 7;
-    Object_Quality_Information->Obj_ArelLong_rms = (int) (tempFrame1 + tempFrame2);
-    tempFrame1 = 0;
-    tempFrame2 = 0;
-
-	tempFrame1 = (int)frame_read.data[4] & 0x7c;
-	tempFrame1 = tempFrame1 >> 2;
-	Object_Quality_Information->Obj_ArelLat_rms = (int) tempFrame1;
-	tempFrame1 = 0;
+	  Object_Quality_Information->Obj_VrelLong_rms = (int) tempFrame1;
+		tempFrame1 = 0;
 
 
-	tempFrame1 = frame_read.data[4] & 0x03;
-    tempFrame1 = tempFrame1 << 3;
-    tempFrame2 = frame_read.data[5] & 0xe0;
-    tempFrame2 = tempFrame2 >> 5;
-    Object_Quality_Information->Obj_Orientation_rms = (int) (tempFrame1 + tempFrame2);
-    tempFrame1 = 0;
-    tempFrame2 = 0;
+	  tempFrame1 = frame_read.data[2] & 0x01;
+	  tempFrame1 = tempFrame1 << 4;
+	  tempFrame2 = frame_read.data[6] & 0xf0;
+	  tempFrame2 = tempFrame1 >> 4;
+	  Object_Quality_Information->Obj_VrelLat_rms = (int) (tempFrame1 + tempFrame2);
+	  tempFrame1 = 0;
+	  tempFrame2 = 0;
 
-	tempFrame1 = (int)frame_read.data[6] & 0xd0;
-	tempFrame1 = tempFrame1 >> 5;
+		tempFrame1 = frame_read.data[3] & 0x0f;
+	  tempFrame1 = tempFrame1 << 1;
+	  tempFrame2 = frame_read.data[4] & 0x80;
+	  tempFrame2 = tempFrame2 >> 7;
+	  Object_Quality_Information->Obj_ArelLong_rms = (int) (tempFrame1 + tempFrame2);
+	  tempFrame1 = 0;
+	  tempFrame2 = 0;
 
-	tempFrame2 = (int)frame_read.data[6] & 0x1c;
-	tempFrame2 = tempFrame2 >> 2;
+		tempFrame1 = (int)frame_read.data[4] & 0x7c;
+		tempFrame1 = tempFrame1 >> 2;
+		Object_Quality_Information->Obj_ArelLat_rms = (int) tempFrame1;
+		tempFrame1 = 0;
 
-	Object_Quality_Information->Obj_ProbOfExist = (int) tempFrame1;
-	Object_Quality_Information->Obj_MeasState = (int) tempFrame2;
-	tempFrame1 = 0;
-    tempFrame2 = 0;
+
+		tempFrame1 = frame_read.data[4] & 0x03;
+	  tempFrame1 = tempFrame1 << 3;
+	  tempFrame2 = frame_read.data[5] & 0xe0;
+	  tempFrame2 = tempFrame2 >> 5;
+	  Object_Quality_Information->Obj_Orientation_rms = (int) (tempFrame1 + tempFrame2);
+	  tempFrame1 = 0;
+	  tempFrame2 = 0;
+
+		tempFrame1 = (int)frame_read.data[6] & 0xd0;
+		tempFrame1 = tempFrame1 >> 5;
+
+		tempFrame2 = (int)frame_read.data[6] & 0x1c;
+		tempFrame2 = tempFrame2 >> 2;
+
+		Object_Quality_Information->Obj_ProbOfExist = (int) tempFrame1;
+		Object_Quality_Information->Obj_MeasState = (int) tempFrame2;
+		tempFrame1 = 0;
+	  tempFrame2 = 0;
 
   }
-
 }
 
 void Object_Extended_Information( int socket_id, struct Object_Extended_Information *Object_Extended_Information){
@@ -602,13 +626,13 @@ void Object_Extended_Information( int socket_id, struct Object_Extended_Informat
     tempFrame1 = frame_read.data[2] & 0x1f;
     tempFrame1 = tempFrame1 << 4;
     tempFrame2 = frame_read.data[3] & 0xf0;
-	tempFrame2 = tempFrame2 >> 4;
+   	tempFrame2 = tempFrame2 >> 4;
     Object_Extended_Information->Obj_ArelLat = (scal_object_arel* (int)(tempFrame1 + tempFrame2))+offset_obj_arellat;
     tempFrame1 = 0;
     tempFrame2 = 0;
 
 
-	Object_Extended_Information->Obj_Class = (int) (frame_read.data[3] & 0x07);
+	  Object_Extended_Information->Obj_Class = (int) (frame_read.data[3] & 0x07);
 
     tempFrame1 = frame_read.data[4];
     tempFrame1 = tempFrame1 << 2;
@@ -621,10 +645,7 @@ void Object_Extended_Information( int socket_id, struct Object_Extended_Informat
     Object_Extended_Information->Obj_Length = (scal_dist*( (int) frame_read.data[6]));
 
     Object_Extended_Information->Obj_Width = ( scal_dist*((int)frame_read.data[7] ));
-
-
   }
-
 }
 
 

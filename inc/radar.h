@@ -19,6 +19,12 @@
 #include <string.h>
 
 
+//Macro definitions
+#define CLUSTER 1
+#define OBJECT 0
+#define NONE 2
+#define SIZE 10
+
 #define Buf_Max 500			/* maximum size of the record buffer */
 #define Cluster_stat 0x600
 #define RadarState 0x201
@@ -190,6 +196,11 @@ extern void Read_ClusterGen(int socket_id, struct Cluster_GenInf *Cluster_ptr, s
 extern void Read_Radar_State(int socket_id, struct Radar_State *Radar_State_ptr);
 extern void displayRadarState(struct Radar_State Radar_State);
 extern void Read_ClusterQual(int socket_id, struct Cluster_QuaInf *Cluster_ptr);
-extern void Init_Gnuplot(FILE *Gnu_fd);
-extern void gnu_point(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numClusters);
+extern void Init_Gnuplot_Clusters(FILE *Gnu_fd);
+extern void Init_Gnuplot_Objects(FILE *Gnu_fd);
+extern void gnu_point_cluster(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numObstacles);
+extern void gnu_point_object(FILE *Gnu_fd, struct Object_GenInf_ar *Object_GenInf_ar, int numObstacles);
 extern void configRadar(int socket_id, int flag);
+extern void gtkConfiguration();
+extern void gtkUpdateClusterLabels(struct Cluster_GenInf_ar *Geninf_array, int numObstacles);
+extern void gtkUpdateObjectLabels(struct Object_GenInf_ar *Object_GenInf_ar, int numObstacles);
