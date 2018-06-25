@@ -365,6 +365,37 @@ void displayRadarState(struct Radar_State Radar_State)
 
 
 
+void configFilter(int socket_id, int flag){
+
+	struct can_frame frame_write;
+	int nbytes;
+	int config;
+
+	frame_write.can_id = 0x200;
+	frame_write.can_dlc = 5;
+
+	frame_write.data[0] = 0x04;
+	if(flag == 0)
+	{
+		frame_write.data[4] =  0x00;
+	}
+	else if(flag == 1)
+	{
+		frame_write.data[4] =  0x20;
+	}
+	else if(flag == 2)
+	{
+		frame_write.data[4] =  0x40;
+	}
+	else if(flag == 3)
+	{
+		frame_write.data[4] =  0x60;
+	}
+
+	nbytes = write(socket_id, &frame_write, sizeof(struct can_frame));
+}
+
+
 
 void configRadar(int socket_id, int flag)
 {
@@ -397,9 +428,7 @@ void configRadar(int socket_id, int flag)
 void gnu_point_cluster(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numObstacles){
 	int i;
 	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue', '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'yellow'\n");
-	 //" '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'yellow',"
-	 //" '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange'"
-	 //" '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
+	//, '-' ls 1 lc rgb 'grey', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange'
 	for(i = 0; i < 4; i++)
 	{
 	  fprintf(Gnu_fd,"%d %d \n", Geninf_array[i].clust_distlat, Geninf_array[i].clust_distlong);
@@ -414,9 +443,6 @@ void gnu_point_object(FILE *Gnu_fd, struct Object_GenInf_ar *Object_GenInf_ar, i
 {
 	int i;
 	fprintf(Gnu_fd, "plot '-' ls 1 lc rgb 'red', '-' ls 1 lc rgb 'blue', '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'yellow'\n");
-	 //" '-' ls 1 lc rgb 'black', '-' ls 1 lc rgb 'brown', '-' ls 1 lc rgb 'yellow',"
-	 //" '-' ls 1 lc rgb 'purple', '-' ls 1 lc rgb 'green', '-' ls 1 lc rgb 'orange'"
-	 //" '-' ls 1 lc rgb 'gold', '-' ls 1 lc rgb 'gray'\n");
 	for(i = 0; i < 4; i++)
 	{
 	  fprintf(Gnu_fd,"%d %d \n", Object_GenInf_ar[i].Obj_DistLat, Object_GenInf_ar[i].Obj_DistLong);
@@ -428,8 +454,8 @@ void gnu_point_object(FILE *Gnu_fd, struct Object_GenInf_ar *Object_GenInf_ar, i
 
 void Init_Gnuplot_Clusters(FILE *Gnu_fd){
 	fprintf(Gnu_fd, "set title \"CLUSTERS PLOT\"\n");
-	fprintf(Gnu_fd, "set yrange [-0 : 20]\n");
-	fprintf(Gnu_fd, "set xrange [-20 : 20]\n");	/*Dimension of the Radar view*/
+	fprintf(Gnu_fd, "set yrange [-0 : 250]\n");
+	fprintf(Gnu_fd, "set xrange [-100 : 100]\n");	/*Dimension of the Radar view*/
 	fprintf(Gnu_fd, "plot '-'\n");
 	fprintf(Gnu_fd, "0 0\n");
 	fprintf(Gnu_fd, "e\n");
@@ -438,8 +464,8 @@ void Init_Gnuplot_Clusters(FILE *Gnu_fd){
 
 void Init_Gnuplot_Objects(FILE *Gnu_fd){
 	fprintf(Gnu_fd, "set title \"OBJECTS PLOT\"\n");
-	fprintf(Gnu_fd, "set yrange [-0 : 20]\n");
-	fprintf(Gnu_fd, "set xrange [-20 : 20]\n");	/*Dimension of the Radar view*/
+	fprintf(Gnu_fd, "set yrange [-0 : 250]\n");
+	fprintf(Gnu_fd, "set xrange [-100 : 100]\n");	/*Dimension of the Radar view*/
 	fprintf(Gnu_fd, "plot '-'\n");
 	fprintf(Gnu_fd, "0 0\n");
 	fprintf(Gnu_fd, "e\n");

@@ -24,7 +24,7 @@ GtkWidget *Labely1,*Labely2,*Labely3,*Labely4,*Labely5,*Labely6,*Labely7,*Labely
 GtkWidget *Labelx1,*Labelx2,*Labelx3,*Labelx4,*Labelx5,*Labelx6,*Labelx7,*Labelx8,*Labelx9,*Labelx10;
 GtkWidget *LabelDT,*Labeldata;
 GtkWidget *Labelnum, *Labeltxt;
-GtkWidget *button1,*button2;
+GtkWidget *button1,*button2,*button3,*button4,*button5,*button6;
 GtkWidget *LabelTop1;
 GtkWidget *grid;
 GtkWidget *checkbutton1,*checkbutton2,*checkbutton3,*checkbutton4,
@@ -58,8 +58,36 @@ static void send_can_obj (GtkWidget *widget,
 {
   clusterOrObject = OBJECT;
 	configRadar(socket_id, OBJECT);
+
 	strcpy(dataType, "   Objects         ");
 }
+
+
+static void send_pow_filter1(GtkWidget *widget,
+             gpointer   data){
+configFilter(socket_id, 0);
+
+}
+
+
+static void send_pow_filter2(GtkWidget *widget,
+             gpointer   data){
+configFilter(socket_id, 1);
+}
+
+
+static void send_pow_filter3(GtkWidget *widget,
+             gpointer   data){
+configFilter(socket_id, 2);
+}
+
+static void send_pow_filter4(GtkWidget *widget,
+             gpointer   data){
+configFilter(socket_id, 3);
+}
+
+
+
 
 static void send_can_cluster(GtkWidget *widget,
              gpointer   data)
@@ -79,6 +107,7 @@ int main(int argc,char **argv){
 	struct Cluster_QuaInf Cluster_qual;
   struct Object_0_Status Object_Status;
   struct Object_Gen_Information Object_gen;
+
 	int numObstacles = 0;
   int j;
   FILE *fp1, *fp2;
@@ -212,6 +241,11 @@ void gtkConfiguration()
 
 		button1 = gtk_button_new_with_label ("   Send_Clusters   ");
     button2 = gtk_button_new_with_label ("   Send_Objects   ");
+    button3 = gtk_button_new_with_label (" 0 Db Power Filter");
+    button4 = gtk_button_new_with_label (" 3 Db Power Filter");
+    button5 = gtk_button_new_with_label (" 6 Db Power Filter");
+    button6 = gtk_button_new_with_label (" 9 Db Power Filter");
+
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
     gtk_window_set_title (GTK_WINDOW (window1), "Radar Application");
@@ -366,6 +400,11 @@ void gtkConfiguration()
 
     gtk_grid_attach(GTK_GRID(grid),button1,0,20,1,1);
     gtk_grid_attach(GTK_GRID(grid),button2,3,20,1,1);
+    gtk_grid_attach(GTK_GRID(grid),button3,0,21,1,1);
+    gtk_grid_attach(GTK_GRID(grid),button4,1,21,1,1);
+    gtk_grid_attach(GTK_GRID(grid),button5,2,21,1,1);
+    gtk_grid_attach(GTK_GRID(grid),button6,3,21,1,1);
+
 
     gtk_grid_attach(GTK_GRID(grid),checkbutton1,0,15,1,1);
     gtk_grid_attach(GTK_GRID(grid),checkbutton2,1,15,1,1);
@@ -382,6 +421,12 @@ void gtkConfiguration()
 
     g_signal_connect(button2,"clicked",G_CALLBACK(send_can_obj),NULL);
     g_signal_connect(button1,"clicked",G_CALLBACK(send_can_cluster),NULL);
+    g_signal_connect(button3,"clicked",G_CALLBACK(send_pow_filter1),NULL);
+    g_signal_connect(button4,"clicked",G_CALLBACK(send_pow_filter2),NULL);
+    g_signal_connect(button5,"clicked",G_CALLBACK(send_pow_filter3),NULL);
+    g_signal_connect(button6,"clicked",G_CALLBACK(send_pow_filter4),NULL);
+
+
     g_signal_connect(G_OBJECT(window1),"destroy",G_CALLBACK(gtk_widget_hide),NULL);
 }
 

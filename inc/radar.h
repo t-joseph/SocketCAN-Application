@@ -201,6 +201,7 @@ extern void Init_Gnuplot_Objects(FILE *Gnu_fd);
 extern void gnu_point_cluster(FILE *Gnu_fd, struct Cluster_GenInf_ar *Geninf_array, int numObstacles);
 extern void gnu_point_object(FILE *Gnu_fd, struct Object_GenInf_ar *Object_GenInf_ar, int numObstacles);
 extern void configRadar(int socket_id, int flag);
+extern void configFilter(int socket_id, int flag);
 extern void gtkConfiguration();
 extern void gtkUpdateClusterLabels(struct Cluster_GenInf_ar *Geninf_array, int numObstacles);
 extern void gtkUpdateObjectLabels(struct Object_GenInf_ar *Object_GenInf_ar, int numObstacles);
